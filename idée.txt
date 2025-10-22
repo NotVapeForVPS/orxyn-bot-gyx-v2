@@ -1,0 +1,93 @@
+Tu es un ingénieur logiciel expert en Node.js et Discord.js v14.  
+Tu dois créer un bot Discord professionnel nommé **Orxyn**, conçu pour gérer le serveur **GYX Boosts**, spécialisé dans la vente d’abonnés TikTok, Instagram, YouTube, etc.
+fait attention le bot 
+---
+
+## 💻 Stack Technique
+- Langage : Node.js v21 (ESM)
+- Librairie principale : discord.js v14
+- Base de données : MySQL (sinon JSON fallback dans `/data/*.json`)
+- Hébergement : prêt à être exécuté via une simple commande `node index.js`
+- Configuration : `.env` et `config.json`
+- API IA : Mistral AI (clé : `MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "mlCfO3YxF3CbwpDT2uPrQ0VCoAUV5cVq")`)
+- Fichier externe `prompt.txt` → utilisé pour définir le contexte IA dans les tickets
+- Thème couleur : **rouge foncé** (ex: `#FF0000`)
+- Footer d’embeds : `Partenaire Officiel GYX Engine`
+- Serveur support officiel : `discord.gg/gyx-engine`
+- Les mutes doivent etre fait via l'api officielle de discord et non un role
+
+---
+
+## ⚙️ Fonctionnalités à coder
+
+### 1. 🔰 Gestion des rôles à l’arrivée
+Quand un membre rejoint :
+- Lui attribuer automatiquement le rôle ID `1428883290668142612`
+- Envoyer un message de bienvenue dans le salon configuré :
+  > Bienvenue <@USER> <:boost:1429082673241915422>  
+  > Pour toute question veuillez ouvrir un <#1428885835545317610> !
+- Le salon de bienvenue doit être **configurable via une commande slash admin** `/setwelcomechannel`
+
+### 2. 🧾 Configuration administrateur
+- Seuls les membres avec le **rôle admin défini dans `config.json`** peuvent exécuter les commandes slash.
+- Commande `/setadminrole <role>` pour définir le rôle admin autorisé.
+
+### 3. 🎫 Système de tickets (ultra poussé)
+- Création via `/ticket create <raison>`
+- Fermeture via `/ticket close`
+- Paramétrable par `/ticket setup` (config des catégories, rôle support, etc.)
+- **IA Mistral intégrée** :  
+  - L’IA répond automatiquement dans le ticket pour assister les utilisateurs.  
+  - Si un **admin** envoie un message dans le ticket, l’IA **cesse de répondre** automatiquement.  
+  - Le contexte utilisé par l’IA vient du fichier `prompt.txt`.
+
+### 4. 🧠 Intégration Mistral AI
+- Requête HTTP POST vers l’API Mistral gratuite.
+- Utiliser la clé `MISTRAL_API_KEY` définie dans `.env`
+- Le texte de contexte du bot provient du fichier `prompt.txt`
+- L’IA n’écrit jamais hors du cadre des tickets.
+
+### 5. ⚔️ Modération
+Commandes slash accessibles uniquement aux admins :
+- `/ban <user> <raison>`
+- `/unban <user>`
+- `/kick <user> <raison>`
+- `/mute <user> <durée>`
+- `/unmute <user>`
+Chaque action doit :
+- Être loggée dans un salon défini via `/setlogchannel`
+- Créer un embed clair (titre rouge foncé, texte blanc)
+- Mentionner l’auteur et la cible
+
+### 6. 🤖 Modération automatique du chat
+- Si un utilisateur (non admin) envoie un message contenant :  
+  `discord.gg/`, `.gg/`, `https://`, `http://`, `google.com`, etc. → le bot **supprime le message** automatiquement.
+- Tous les messages sont envoyés à une **IA interne (sans API key)** pour analyse du ton (ex: insultes, menaces, propos haineux).  
+- Si l’IA estime qu’une mesure est nécessaire → le message est supprimé + l’utilisateur est **mute 5 min automatiquement.**
+- L’IA interne doit comprendre les **contextes d’humour / ironie** et éviter les faux positifs.
+
+### 7. 🎁 Système de giveaways
+- `/giveaway start <durée> <récompense>` → lance un giveaway
+- `/giveaway end <id>` → termine un giveaway
+- `/giveaway reroll <id>` → relance un gagnant
+- Stockage en JSON ou MySQL
+- Message avec embed stylé (rouge foncé) et réaction 🎉
+
+### 8. 📜 Logs Serveur
+- Chaque action importante (join, leave, modération, erreur, crash, etc.) doit être envoyée dans un salon de logs configurable.
+- Utiliser `/setlogchannel <#salon>` pour le définir.
+
+### 9. 🚀 Déploiement des commandes slash
+- À chaque démarrage, le bot doit déployer **toutes les commandes globalement** (pas besoin de guild ID).
+- Lorsqu’il rejoint un **nouveau serveur**, il déploie automatiquement les commandes.
+
+---
+
+## 🚫 Ce que le bot NE DOIT PAS avoir :
+- ❌ Pas de système de monnaie, économie, coinflip, leaderboard, fun commands, jeux, etc.
+- ❌ Pas de musiques ou réactions inutiles
+- ❌ Pas de “random quotes” ou commandes inutiles
+
+---
+
+## 🧩 Structure du projet
