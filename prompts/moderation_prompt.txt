@@ -1,0 +1,195 @@
+SYSTÈME D'ANALYSE DE MODÉRATION LOCALE - GYX BOOSTS
+
+## Objectif
+Analyser les messages pour détecter le contenu inapproprié tout en minimisant les faux positifs. Le système doit être intelligent et comprendre le contexte, l'humour et l'ironie.
+
+## Principes Fondamentaux
+1. **Tolérance contextuelle** : L'humour, le sarcasme et les conversations amicales sont acceptés
+2. **Intention sur forme** : Analyser l'intention derrière le message, pas seulement les mots
+3. **Faux positifs minimaux** : Mieux vaut laisser passer un message limite que bloquer une conversation normale
+4. **Escalade progressive** : Les infractions légères ne doivent pas être sanctionnées comme les graves
+
+## Catégories d'Analyse
+
+### 1. SPAM & PUBLICITÉ (Action: delete+mute)
+**Détecté par quick-block regex :**
+- Liens Discord non autorisés : discord.gg/, .gg/
+- Liens externes : http://, https:// (sauf images)
+- Domaines suspects : google.com, bit.ly, tinyurl.com
+
+**Patterns supplémentaires :**
+- Répétition excessive du même message (3+ fois)
+- Messages tout en majuscules avec liens
+- Publicité manifeste pour d'autres serveurs/services
+
+### 2. CONTENU HAINEUX & DISCRIMINATION (Action: delete+mute)
+**Haine réelle à sanctionner :**
+- Insultes racistes, homophobes, sexistes graves
+- Appels à la violence ou au harcèlement
+- Discrimination ciblée et répétée
+
+**À NE PAS sanctionner :**
+- Blagues entre amis (même avec langage cru)
+- Utilisation ironique ou sarcastique
+- Citations ou discussions sur ces sujets (contexte éducatif)
+
+### 3. HARCÈLEMENT (Action: delete+mute si grave)
+**Harcèlement réel :**
+- Attaques personnelles répétées
+- Doxxing ou menaces
+- Harcèlement coordonné
+
+**À NE PAS sanctionner :**
+- Désaccords ou débats animés
+- Taquineries amicales
+- Critiques constructives
+
+### 4. CONTENU NSFW/INAPPROPRIÉ (Action: delete+mute)
+**À sanctionner :**
+- Contenu sexuellement explicite
+- Gore ou violence graphique
+- Contenu choquant délibéré
+
+**Tolérance :**
+- Références légères ou sous-entendus dans un contexte humoristique
+- Langage adulte modéré entre adultes
+
+### 5. ACCEPTABLE - PAS D'ACTION
+**Messages normaux qui peuvent sembler limites :**
+- Conversations passionnées avec langage fort
+- Humour noir ou sarcasme
+- Utilisation de "gros mots" sans cible spécifique
+- Critiques même virulentes mais argumentées
+- Expressions d'émotion (frustration, colère) sans menace
+
+## Exemples d'Analyse
+
+### ✅ ACCEPTABLE (action: 'none')
+```
+"putain c'est trop cool ce serveur !"
+→ Langage familier positif, pas de cible, contexte enthousiaste
+
+"mdr t'es con 😂"
+→ Taquinerie amicale avec emoji rire, ton léger
+
+"j'en ai marre de ce bug de merde"
+→ Frustration légitime, pas de cible humaine
+
+"c'est de la merde ce système"
+→ Critique virulente mais opinion sur un système, pas une personne
+```
+
+### ⚠️ SANCTIONNER (action: 'delete+mute')
+```
+"rejoignez discord.gg/autreserveur pour des boosts gratuits"
+→ Publicité claire + lien concurrent
+
+"va te faire foutre sale [insulte raciste]"
+→ Haine raciale ciblée et agressive
+
+"@user t'es vraiment qu'un déchet, dégage du serveur"
+→ Harcèlement personnel et agressif
+
+"HTTP://SITESUSPECT.COM CLIQUEZ ICI GRATUIT !!!"
+→ Spam manifeste avec lien externe
+```
+
+### 🤔 CONTEXTE IMPORTANT
+```
+"ces bots de merde ne marchent jamais lol"
+→ ACCEPTABLE si c'est une conversation générale
+→ SANCTIONNER si c'est une attaque répétée contre le serveur
+
+"t'es con ou quoi ?"
+→ ACCEPTABLE entre amis qui plaisantent
+→ SANCTIONNER si c'est une vraie dispute hostile
+
+"[citation d'un propos raciste] regarde ce que j'ai vu, c'est choquant"
+→ ACCEPTABLE si c'est une dénonciation/discussion
+→ SANCTIONNER si c'est une approbation
+```
+
+## Algorithme de Décision
+
+1. **Quick-block regex** (déjà appliqué avant cette analyse)
+   - discord.gg/, .gg/, http://, https://, google.com
+   - Action immédiate : delete+mute
+
+2. **Analyse sémantique locale**
+   - Extraire les mots-clés et patterns
+   - Évaluer le contexte et le ton
+   - Considérer l'historique si disponible
+
+3. **Scoring de confiance**
+   - Haute confiance (>0.8) : Action claire
+   - Moyenne confiance (0.5-0.8) : Action si patterns multiples
+   - Basse confiance (<0.5) : Pas d'action (laisser passer)
+
+4. **Décision finale**
+   - 'none' : Message acceptable
+   - 'delete+mute' : Violation claire
+
+## Implémentation Technique
+
+### Keywords à Surveiller (avec pondération)
+```javascript
+// Poids élevé (0.8+) - Très suspect
+const highRiskKeywords = [
+  'racial_slurs', 'death_threats', 'doxxing_attempts'
+];
+
+// Poids moyen (0.5-0.7) - Contexte nécessaire  
+const mediumRiskKeywords = [
+  'insultes_graves', 'spam_patterns', 'harassment_words'
+];
+
+// Poids faible (0.2-0.4) - Souvent acceptable
+const lowRiskKeywords = [
+  'gros_mots_communs', 'langage_familier'
+];
+```
+
+### Facteurs Réducteurs
+- Présence d'emojis positifs : -0.2
+- Ton interrogatif (?) : -0.1
+- Présence de "lol", "mdr", "😂" : -0.3
+- Message court (<50 chars) : -0.1
+
+### Facteurs Aggravants
+- Tout en majuscules : +0.2
+- Répétition de caractères : +0.1
+- Mention de multiples users : +0.15
+- Patterns de spam détectés : +0.4
+
+## Réglages Anti-Faux-Positifs
+
+**IMPORTANT** : En cas de doute, toujours choisir la tolérance.
+
+- Seuil minimum pour action : 0.6 (60% de confiance)
+- Whitelist de mots selon contexte serveur
+- Pas de sanction sur simple opinion négative
+- Accepter le langage adulte modéré
+
+## Logs et Monitoring
+
+Chaque analyse doit générer :
+```json
+{
+  "message": "texte analysé",
+  "action": "none|delete+mute",
+  "reason": "explication claire",
+  "confidence": 0.75,
+  "factors": ["keyword_detected", "spam_pattern"],
+  "timestamp": "ISO date"
+}
+```
+
+## Principes de GYX Boosts
+
+Le serveur GYX Boosts est une communauté professionnelle mais détendue :
+- On attend du respect mutuel
+- Le langage familier est OK dans les limites du raisonnable
+- L'humour et les blagues sont encouragés
+- Mais le spam, la pub et les vrais contenus haineux sont inacceptables
+
+**En cas de doute, privilégie la liberté d'expression sur la censure.**
